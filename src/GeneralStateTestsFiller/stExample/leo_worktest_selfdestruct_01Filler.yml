@@ -1,0 +1,84 @@
+# The name of the test
+leo_worktest_selfdestruct_01:
+
+  # The general Ethereum environment
+  env:
+    currentCoinbase: 2adc25665018aa1fe0e6bc666dac8fc2697ff9ba
+    currentDifficulty: 0x20000
+    currentGasLimit: 10_000_0000
+    currentNumber: 1
+    currentTimestamp: 1000
+    previousHash: 5e20a0453cecd065ea59c37ac63e079ee08998b6045136a8ce6635c7912ec0b6
+
+    # Human readable information
+  _info:
+    comment: |
+      'Test that a call to selfdestruct destroys the contract address '
+      'and transfers its funds'
+
+  # The situation before the test starts
+  pre:
+
+    # Describe an address
+    dead000000000000000000000000000000000001:
+
+      # Balance in Wei
+      balance: '0x1'
+
+      # This address is a contract, and this is its code.
+      code: |
+        :yul {
+           selfdestruct(0x1)
+        }
+      nonce: '0'
+
+      # Content of the address's storage. In this case it is empty
+      storage: {}
+
+    # Recepient address.
+    0000000000000000000000000000000000000001:
+      balance: '0'
+      code: '0x'
+      nonce: '0'
+      storage: {}
+
+    # Sender address.
+    a94f5374fce5edbc8e2a8697c15331677e6ebf0b:
+      balance: '0xffffffffffffff'
+      code: '0x'
+      nonce: '0'
+      storage: {}
+
+
+  # The transaction to check
+  transaction:
+    data:
+    - ''
+    gasLimit:
+    - '80000000'
+    gasPrice: 10
+
+    # Must be the same nonce as the user address (a94f...)
+    nonce: '0'
+
+    # The contract we are testing. If this field is empty the transaction
+    # becomes contract creation
+    to: 'dead000000000000000000000000000000000001'
+    value:
+    - '0'
+    secretKey: '45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8'
+
+
+  # The expected result
+  expect:
+    - indexes:
+        data: !!int -1
+        gas:  !!int -1
+        value: !!int -1
+      network:
+        - '>=Istanbul'
+      result:
+        0000000000000000000000000000000000000001:
+          balance: 1
+        dead000000000000000000000000000000000001:
+          shouldnotexist: ''
